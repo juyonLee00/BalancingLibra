@@ -55,7 +55,7 @@ public class GameManager : MonoBehaviour
         mainCamera = Camera.main;
         if (mainCamera == null)
         {
-            Debug.LogError("Main Camera not found!");
+            Logger.LogError("Main Camera not found!", this);
         }
 
         if(gameOverPanel != null) gameOverPanel.SetActive(false);
@@ -174,7 +174,7 @@ public class GameManager : MonoBehaviour
         }
 
         isGameOver = true;
-        Debug.Log(reason);
+        Logger.Log(reason, this);
 
         if(gameOverPanel != null)
         {
@@ -221,7 +221,7 @@ public class GameManager : MonoBehaviour
     {
         if (Input.GetKeyDown(KeyCode.Escape))
         {
-            Debug.Log("Game Exit Triggered"); // 로그 확인용
+            Logger.Log("Game Exit Triggered", this); // 로그 확인용
 
             #if UNITY_EDITOR
                 UnityEditor.EditorApplication.isPlaying = false;

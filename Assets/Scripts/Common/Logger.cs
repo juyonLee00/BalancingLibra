@@ -20,14 +20,14 @@ public static class Logger
     public static void LogWarning(object message, Object context = null)
     {
         if (context != null)
-            UnityEngine.Debug.Log($"[{System.DateTime.Now:HH:mm:ss.fff}] {message}", context);
+            UnityEngine.Debug.LogWarning($"[{System.DateTime.Now:HH:mm:ss.fff}] {message}", context);
         else
-            UnityEngine.Debug.Log($"[{System.DateTime.Now:HH:mm:ss.fff}] {message}");
+            UnityEngine.Debug.LogWarning($"[{System.DateTime.Now:HH:mm:ss.fff}] {message}");
     }
 
     public static void LogError(object message, Object context = null)
     {
-        string logMsg = $"[{System.DateTime.Now:HH:mm:ss.fff}] {message}]";
+        string logMsg = $"[{System.DateTime.Now:HH:mm:ss.fff}] {message}";
         
         if (context != null)
             UnityEngine.Debug.LogError(logMsg, context);
