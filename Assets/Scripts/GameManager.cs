@@ -12,7 +12,7 @@ public class BallData
     public GameObject prefab;
 }
 
-public class GameManager : MonoBehaviour
+public class GameManager : SingletonBehaviour<GameManager>
 {
     [Header("Game Settings")]
     [SerializeField] private List<BallData> ballList;
@@ -29,7 +29,6 @@ public class GameManager : MonoBehaviour
     [SerializeField] private GameObject scorePanel;
     [SerializeField] private GameObject nextPanel;
 
-    public static GameManager Instance {get; private set;}
     public bool isGameOver = false;
     public int currentScore = 0;
     
@@ -39,16 +38,9 @@ public class GameManager : MonoBehaviour
     private float timeCount = 0f;
     private float spawnInterval = 0.5f;
     
-    private void Awake()
+    protected override void Awake()
     {
-        if (Instance == null)
-        {
-            Instance = this;
-        }
-        else
-        {
-            Destroy(gameObject);
-        }
+        base.Awake();
     }
     void Start()
     {
@@ -193,6 +185,10 @@ public class GameManager : MonoBehaviour
     public void RestartGame()
     {
         Time.timeScale = 1f;
+
+        isGameOver = false;
+        currentScore = 0;
+        UpdateScoreUI();
 
         string currentSceneName = SceneManager.GetActiveScene().name;
         SceneManager.LoadScene(currentSceneName);
