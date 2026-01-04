@@ -75,16 +75,16 @@ public class SingletonBehaviour<T> : MonoBehaviour where T : SingletonBehaviour<
     }
 
     //삭제 시 실행
-    protected virtual void OnDestroy()
+    protected virtual void OnApplicationQuit() 
     {
-        Dispose();
+        _applicationIsQuitting = true;
     }
 
-    protected virtual void Dispose()
+    protected virtual void OnDestroy()
     {
         if (_instance == this)
         {
-            _applicationIsQuitting = true;
+            _instance = null;
         }
     }
 }

@@ -190,6 +190,11 @@ public class GameManager : SingletonBehaviour<GameManager>
         currentScore = 0;
         UpdateScoreUI();
 
+        if(Instance == this)
+        {
+            Destroy(this.gameObject);
+        }
+
         string currentSceneName = SceneManager.GetActiveScene().name;
         SceneManager.LoadScene(currentSceneName);
     }
