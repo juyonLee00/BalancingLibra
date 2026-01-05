@@ -184,14 +184,13 @@ public class GameManager : SingletonBehaviour<GameManager>
     
     public void RestartGame()
     {
-        Time.timeScale = 1f;
+        if(Instance == this)
+        {
+            Destroy(this.gameObject);
+        }
 
-        isGameOver = false;
-        currentScore = 0;
-        UpdateScoreUI();
-
-        string currentSceneName = SceneManager.GetActiveScene().name;
-        SceneManager.LoadScene(currentSceneName);
+        SceneLoader.Instance.ReloadScene();
+        
     }
 
     public void AddScore(int level)
