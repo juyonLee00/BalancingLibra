@@ -5,5 +5,6 @@ namespace BalancingLibra.Data
         void SetDefaultData();
         bool LoadData();
         bool SaveData();
+        void DeleteData();
     }
 }

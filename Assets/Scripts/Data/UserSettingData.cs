@@ -46,7 +46,8 @@ namespace BalancingLibra.Data
             try
             {
                 PlayerPrefs.SetInt(SOUND_KEY, Sound ? 1 : 0);
-                PlayerPrefs.Save(); // 명시적 저장 호출 (Unity 버전에 따라 자동 저장되나, 확실한 타이밍 제어 필요)
+                // 명시적 저장 호출 (Unity 버전에 따라 자동 저장되나, 확실한 타이밍 제어 필요)
+                PlayerPrefs.Save();
                 
                 Logger.Log($"Sound : {Sound}");
                 return true;
@@ -56,6 +57,17 @@ namespace BalancingLibra.Data
                 Logger.Log($"Save failed ({e.Message})");
                 return false;
             }
+        }
+
+        public void DeleteData()
+        {
+            if(PlayerPrefs.HasKey(SOUND_KEY))
+            {
+                PlayerPrefs.DeleteKey(SOUND_KEY);
+                PlayerPrefs.Save();
+                Logger.Log($"{nameof(UserSettingData)} : Key Deleted");
+            }
+            SetDefaultData();
         }
     }
 }
