@@ -62,5 +62,15 @@ namespace BalancingLibra.Data
                 return false;
             }
         }
+
+        public void DeleteData()
+        {
+            if(File.Exists(SavePath))
+            {
+                File.Delete(SavePath);
+                Logger.Log($"{nameof(UserGoodsData)} : File Deleted");
+            }
+            SetDefaultData();
+        }
     }
 }
