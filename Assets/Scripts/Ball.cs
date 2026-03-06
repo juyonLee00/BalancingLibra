@@ -42,7 +42,7 @@ public class Ball : MonoBehaviour
 
             float myMass = _rigidbody.mass;
             float myScale = transform.localScale.x;
-            GameManager.Instance.AddScore(this.ballLevel, myMass, myScale);
+            ScoreManager.Instance.AddScore(this.ballLevel, myMass, myScale, GameManager.Instance.isFeverTime);
 
             if (this.ballLevel == 5)
             {
@@ -124,7 +124,7 @@ public class Ball : MonoBehaviour
             {
                 float newMass = newBallScript.GetComponent<Rigidbody>().mass;
                 float newScale = newBallScript.transform.localScale.x;
-                GameManager.Instance.AddScore(this.ballLevel + 1, newMass, newScale);
+                ScoreManager.Instance.AddScore(this.ballLevel + 1, newMass, newScale, GameManager.Instance.isFeverTime);
             }
             
         }
