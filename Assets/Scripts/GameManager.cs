@@ -1,8 +1,8 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using TMPro;
 using Unity.VisualScripting;
 using UnityEngine.UI;
+using TMPro;
 using System.Collections.Generic;
 
 [System.Serializable]
@@ -18,7 +18,7 @@ public class GameManager : SingletonBehaviour<GameManager>
     [Header("End Game Settings")]
     // 블랙홀 소멸 보너스 점수
     public int blackHoleBonusScore = 5000; 
-    public GameObject blackHoleEffectPrefab; /
+    public GameObject blackHoleEffectPrefab; 
 
     // 큰 별을 만들 경우에 대한 점수 배율
     [Header("Score Balance Settings")]
@@ -43,7 +43,6 @@ public class GameManager : SingletonBehaviour<GameManager>
     private GameObject _currentPreviewObject;
 
     [Header("UI Settings")]
-    [SerializeField] private TextMeshProUGUI scoreText;
     [SerializeField] private TextMeshProUGUI finalScoreText;
     [SerializeField] private GameObject gameOverPanel;
 
@@ -57,7 +56,6 @@ public class GameManager : SingletonBehaviour<GameManager>
     private static bool hasSeenTutorial = false;
 
     public bool isGameOver = false;
-    public int currentScore = 0;
     
     private int _nextBallIndex;
 
@@ -94,7 +92,6 @@ public class GameManager : SingletonBehaviour<GameManager>
         if(gameOverPanel != null) gameOverPanel.SetActive(false);
 
         SetNextBall();
-        UpdateScoreUI();
 
         if(helpPanel != null)
         {
@@ -263,7 +260,7 @@ public class GameManager : SingletonBehaviour<GameManager>
 
         if(finalScoreText != null)
         {
-            finalScoreText.text = $"Score: {currentScore}";
+            finalScoreText.text = $"Score: {ScoreManager.Instance.CurrentScore}";
         }
         Time.timeScale = 0f;
     }
@@ -277,42 +274,6 @@ public class GameManager : SingletonBehaviour<GameManager>
 
         SceneLoader.Instance.ReloadScene();
         
-    }
-
-    public void AddScore(int level, float mass, float scale)
-    {
-        if(isGameOver)
-            return;
-
-        // 부피 계산
-        float volume = Mathf.Pow(Mathf.Max(scale, 0.01f), 3);
-
-        // 팽창도 산출: 부피 / 질량
-        // 최소값 0.1f 보정
-        float expansion = volume / Mathf.Max(mass, 0.1f);
-        
-        float rawScore = Mathf.Pow(2, level) * expansion * baseScoreMultiplier;
-
-        // 최종 점수: 레벨 가중치 * 팽창도 * 기본배율
-        int pointsToAdd = Mathf.Max(1, Mathf.RoundToInt(rawScore));
-
-        // 피버타임 중이라면 획득 점수 2배 
-        if (isFeverTime)
-        {
-            pointsToAdd *= 2;
-            Logger.Log($"FEVER BONUS! +{pointsToAdd} Points (Expansion: {expansion:F1})", this);
-        }
-
-        currentScore += pointsToAdd;
-        UpdateScoreUI();
-    }
-
-    private void UpdateScoreUI()
-    {
-        if(scoreText != null)
-        {
-            scoreText.text = currentScore.ToString();
-        }
     }
 
     // 저울의 수평 상태를 매 프레임 전달받아 타이머 시작
@@ -413,8 +374,7 @@ public class GameManager : SingletonBehaviour<GameManager>
     {
         Logger.Log("DUAL BLACK HOLE TRIGGERED!", this);
 
-        currentScore += blackHoleBonusScore;
-        UpdateScoreUI();
+        ScoreManager.Instance.AddBonusScore(blackHoleBonusScore);
 
         StartCoroutine(AnimateBlackHoleAbsorption(star1, star2));
 
