@@ -9,8 +9,27 @@ public class Ball : MonoBehaviour
 
     private bool isMerging = false; 
 
+    private Rigidbody _rigidbody;
+
     public Scale CurrentScale => _currentScale;
     private Scale _currentScale = null;
+
+    private void Awake()
+    {
+        _rigidbody  = GetComponent<Rigidbody>();
+    }
+
+    private void OnEnable()
+    {
+        isMerging = false;
+        _currentScale = null;
+
+        if(_rigidbody != null)
+        {
+            _rigidbody.linearVelocity = Vector3.zero;
+            _rigidbody.angularVelocity = Vector3.zero;
+        }
+    }
 
     //저울 직접 접촉
     public void RegisterScale(Scale detectedScale)
@@ -20,31 +39,39 @@ public class Ball : MonoBehaviour
         if(_currentScale == null)
         {
             _currentScale = detectedScale;
-            GameManager.Instance.AddScore(this.ballLevel);
-            return;
+
+            float myMass = _rigidbody.mass;
+            float myScale = transform.localScale.x;
+            GameManager.Instance.AddScore(this.ballLevel, myMass, myScale);
+
+            if (this.ballLevel == 5)
+            {
+                GameManager.Instance.CheckBlackHoleCondition();
+            }
         }
         
-        if(_currentScale != detectedScale)
+        else if(_currentScale != detectedScale)
         {
             GameManager.Instance.GameOver("Ball moves another scale");
+            GameManager.Instance.LoseLife("Ball moved to another scale");
         }
     }
 
     private void OnCollisionEnter(Collision collision)
     {
-        // 1. 이미 합쳐지는 중이면 무시
         if (isMerging) return;
 
-        // 2. 충돌한 물체에 Ball 스크립트가 있는지 확인
-        Ball otherBall = collision.gameObject.GetComponent<Ball>();
+        Ball otherBall = collision.collider.attachedRigidbody?.GetComponent<Ball>();
 
-        // 3. 상대방도 Ball이고, 나와 레벨이 같다면 합체 조건 성립
         if(otherBall != null)
         {
             CheckScaleConsistency(otherBall);
 
+            if(GameManager.Instance.isGameOver) return;
+
             if(otherBall.ballLevel == this.ballLevel)
             {
+                // 중복 병합 방지 (ID가 큰 쪽에서만 한 번 실행)
                 if(this.gameObject.GetInstanceID() > otherBall.gameObject.GetInstanceID())
                 {
                     Merge(otherBall);
@@ -65,42 +92,47 @@ public class Ball : MonoBehaviour
         }
 
         //상대와 나 둘 다 다른 scale에 속해 있을 때
-        else if(_currentScale != otherBall._currentScale)
+        else if(_currentScale != otherBall.CurrentScale)
         {
             GameManager.Instance.GameOver("Ball moved to another scale(Stack Collision)");
+            GameManager.Instance.LoseLife("Ball moved to another scale(Stack Collision)");
         }
     }
 
     void Merge(Ball otherBall)
     {
-        // 중복 실행 방지
         isMerging = true; 
         otherBall.isMerging = true;
 
         // 충돌 지점 중간 계산
         Vector3 spawnPos = (transform.position + otherBall.transform.position) / 2f;
 
-        // 다음 레벨의 공이 설정되어 있다면 생성 (마지막 레벨 수박이면 생성 안 함)
+        // 다음 레벨의 공이 설정되어 있다면 생성 (마지막 레벨이면 생성 안 함)
         if (nextLevelPrefab != null)
         {
-            GameObject newBallObj = Instantiate(nextLevelPrefab, spawnPos, Quaternion.identity);
+            int nextLevel = this.ballLevel + 1;
+            PoolType nextPoolType = (PoolType)(nextLevel - 1);
+
+            Ball newBallScript = PoolManager.Instance.Spawn<Ball>(nextPoolType, spawnPos, Quaternion.identity);
             
             //합쳐져서 나온 공에게 현재 저울 소속 전달
-            Ball newBallScript = newBallObj.GetComponent<Ball>();
             if(newBallScript != null && _currentScale != null)
             {
-                //RegisterScale을 통해 점수 얻고, 소속도 등록
                 newBallScript.RegisterScale(_currentScale);
             }
             else
             {
-                GameManager.Instance.AddScore(this.ballLevel + 1);
+                float newMass = newBallScript.GetComponent<Rigidbody>().mass;
+                float newScale = newBallScript.transform.localScale.x;
+                GameManager.Instance.AddScore(this.ballLevel + 1, newMass, newScale);
             }
             
         }
 
-        // 현재 공과 충돌한 공 삭제
-        Destroy(otherBall.gameObject);
-        Destroy(this.gameObject);
+        PoolType myType = (PoolType)(this.ballLevel - 1);
+        PoolType otherType = (PoolType)(otherBall.ballLevel - 1);
+        
+        PoolManager.Instance.ReturnObject(otherType, otherBall.gameObject);
+        PoolManager.Instance.ReturnObject(myType, this.gameObject);
     }
 }
