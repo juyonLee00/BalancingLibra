@@ -1,0 +1,81 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &1138319400187736771
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2274357066517365149}
+  - component: {fileID: 6769560059864471638}
+  m_Layer: 0
+  m_Name: GameManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &2274357066517365149
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1138319400187736771}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &6769560059864471638
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1138319400187736771}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c2e6bbdb7cc2b45bcac81410f44e03b7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  blackHoleBonusScore: 5000
+  blackHoleEffectPrefab: {fileID: 0}
+  baseScoreMultiplier: 8000
+  feverFillImage: {fileID: 0}
+  currentFever: 0
+  isFeverTime: 0
+  ballList:
+  - name: Star0
+    prefab: {fileID: 770348006284655742, guid: d92b9a2a554c74fc4aafbb7fc99b5ac3, type: 3}
+  - name: Star1
+    prefab: {fileID: 770348006284655742, guid: e763e8940a1f14271a3571beeee6f789, type: 3}
+  - name: Star2
+    prefab: {fileID: 4661243771410590465, guid: 0bbdee8f8b8dc416fba7b126f8b08348, type: 3}
+  - name: Star3
+    prefab: {fileID: 907289109182779542, guid: dcf203cd0936d484f9f60398e2ea835b, type: 3}
+  - name: Star4
+    prefab: {fileID: 1523735282437955711, guid: c9e1e19e438fc4687ac87c587d114fb8, type: 3}
+  - name: Star5
+    prefab: {fileID: 6102443691494191744, guid: db6d965c78ba14da3ac3dfcc9a125fe3, type: 3}
+  previewPos: {fileID: 0}
+  finalScoreText: {fileID: 0}
+  gameOverPanel: {fileID: 0}
+  scorePanel: {fileID: 0}
+  nextPanel: {fileID: 0}
+  helpPanel: {fileID: 0}
+  isGameOver: 0
+  maxLife: 3
+  currentLife: 0
+  heartUIArray:
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  fullHeartSprite: {fileID: 21300000, guid: fed24bd82cefc0c4a8ef64dab6231b53, type: 3}
+  emptyHeartSprite: {fileID: 21300002, guid: fed24bd82cefc0c4a8ef64dab6231b53, type: 3}
+  cheatLevel6Prefab: {fileID: 6102443691494191744, guid: db6d965c78ba14da3ac3dfcc9a125fe3, type: 3}
