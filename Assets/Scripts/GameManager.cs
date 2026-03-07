@@ -113,7 +113,7 @@ public class GameManager : SingletonBehaviour<GameManager>
                 if(ballScript != null)
                 {
                     int poolSize = (ballScript.ballLevel <= 2) ? 30 : 10;
-                    PoolType type = (PoolType)(ballScript.ballLevel - 1);
+                    PoolType type = ballScript.myPoolType; 
                     PoolManager.Instance.CreatePool(type, data.prefab, poolSize);
                 }
             }
@@ -169,7 +169,7 @@ public class GameManager : SingletonBehaviour<GameManager>
         if(selectedBallPrefab != null)
         {
             Ball ballPrefabScript = selectedBallPrefab.GetComponent<Ball>();
-            PoolType type = (PoolType)(ballPrefabScript.ballLevel - 1); 
+            PoolType type = ballPrefabScript.myPoolType; 
             PoolManager.Instance.Spawn<Ball>(type, worldPosition, Quaternion.identity);
         }
         SetNextBall();
@@ -213,11 +213,11 @@ public class GameManager : SingletonBehaviour<GameManager>
                 Destroy(rb);
             }
 
-            Collider[] cols = _currentPreviewObject.GetComponentsInChildren<Collider>(true);
-            foreach(Collider col in cols)
+            BallCollisionSensor[] sensorScripts = _currentPreviewObject.GetComponentsInChildren<BallCollisionSensor>(true);
+            foreach(BallCollisionSensor sensor in sensorScripts)
             {
-                col.enabled = false;
-                Destroy(col);
+                sensor.enabled = false;
+                Destroy(sensor);
             }
 
             Ball[] ballScripts = _currentPreviewObject.GetComponentsInChildren<Ball>(true);
@@ -378,7 +378,7 @@ public class GameManager : SingletonBehaviour<GameManager>
 
         StartCoroutine(AnimateBlackHoleAbsorption(star1, star2));
 
-        // 블랙홀 발동과 동시에 100% 피버타임
+        // 블랙홀 발동과 동시에 피버타임
         if (!isFeverTime)
         {
             currentFever = 100f; 
@@ -395,10 +395,10 @@ public class GameManager : SingletonBehaviour<GameManager>
             Destroy(effect, 7f); 
         }
         if (star1 != null) 
-            PoolManager.Instance.ReturnObject((PoolType)(star1.ballLevel), star1.gameObject);
+            PoolManager.Instance.ReturnObject(star1.myPoolType, star1.gameObject);
         
         if (star2 != null) 
-            PoolManager.Instance.ReturnObject((PoolType)(star2.ballLevel), star2.gameObject);
+            PoolManager.Instance.ReturnObject(star2.myPoolType, star2.gameObject);
     }
 
     private System.Collections.IEnumerator AnimateBlackHoleAbsorption(Ball star1, Ball star2)
