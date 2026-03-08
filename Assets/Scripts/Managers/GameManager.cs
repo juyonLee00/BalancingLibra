@@ -63,6 +63,7 @@ public class GameManager : SingletonBehaviour<GameManager>
     private float timeCount = 0f;
     private float spawnInterval = 0.5f;
 
+
     [Header("Life System")]
     public int maxLife = 3;        
     public int currentLife;       
@@ -72,6 +73,10 @@ public class GameManager : SingletonBehaviour<GameManager>
     private Coroutine fadeCoroutine;
 
     public GameObject cheatLevel6Prefab;
+
+    public float feverTimePitch = 1.7f;
+
+    public float bgmPitch = 1.0f;
     
     protected override void Awake()
     {
@@ -98,6 +103,10 @@ public class GameManager : SingletonBehaviour<GameManager>
             if (!hasSeenTutorial)
             {
                 fadeCoroutine = StartCoroutine(InitialTutorialSequence());
+                if (AudioManager.Instance != null)
+                {
+                    AudioManager.Instance.PlayBGM(BGMType.InGame);
+                }
             }
             else
             {
@@ -128,11 +137,21 @@ public class GameManager : SingletonBehaviour<GameManager>
     {
         if(Input.GetKeyDown(KeyCode.Escape))
         {
+            if(AudioManager.Instance != null)
+            {
+                AudioManager.Instance.PlaySFX(SFXType.Click);
+            }
+            
             HandleGameExit();
         }
 
         if(Input.GetKeyDown(KeyCode.F1) && !isGameOver)
         {
+            if(AudioManager.Instance != null)
+            {
+                AudioManager.Instance.PlaySFX(SFXType.Click);
+            }
+            
             ToggleHelpMenu();
         }
 
@@ -147,6 +166,10 @@ public class GameManager : SingletonBehaviour<GameManager>
         timeCount += Time.deltaTime;
         if (Input.GetMouseButtonDown(0) && timeCount >= spawnInterval)
         {
+            if(AudioManager.Instance != null)
+            {
+                AudioManager.Instance.PlaySFX(SFXType.Click);
+            }
             SpawnBall();
         }
     }
@@ -273,6 +296,12 @@ public class GameManager : SingletonBehaviour<GameManager>
         {
             finalScoreText.text = $"Score: {ScoreManager.Instance.CurrentScore}";
         }
+        if(AudioManager.Instance != null)
+        {
+            AudioManager.Instance.PlaySFX(SFXType.GameOver);
+            AudioManager.Instance.StopBGM();
+        }
+
         Time.timeScale = 0f;
     }
     
@@ -284,6 +313,11 @@ public class GameManager : SingletonBehaviour<GameManager>
         }
 
         SceneLoader.Instance.ReloadScene();
+        
+        if(AudioManager.Instance != null)
+        {
+            AudioManager.Instance.PlayBGM(BGMType.InGame);
+        }
         
     }
 
@@ -453,6 +487,11 @@ public class GameManager : SingletonBehaviour<GameManager>
         float duration = 7f;
         float elapsed = 0f;
 
+        if (AudioManager.Instance != null)
+        {
+            AudioManager.Instance.SetBGMPitch(feverTimePitch);
+        }
+
         Logger.Log("FEVER TIME START! (SCORE x2)", this);
 
         while (elapsed < duration)
@@ -469,6 +508,11 @@ public class GameManager : SingletonBehaviour<GameManager>
         balanceTimer = 0f; 
         UpdateFeverUI();
         Logger.Log("FEVER TIME END", this);
+
+        if (AudioManager.Instance != null)
+        {
+            AudioManager.Instance.SetBGMPitch(bgmPitch);
+        }
     }
 
     private void HandleGameExit()
@@ -490,6 +534,10 @@ public class GameManager : SingletonBehaviour<GameManager>
     {
         if (isGameOver) return;
 
+        if (AudioManager.Instance != null)
+        {
+            AudioManager.Instance.PlaySFX(SFXType.LifeGone);
+        }
         currentLife--;
         Logger.Log($"Life Lost: {reason} | Remaining: {currentLife}", this);
         
@@ -590,7 +638,7 @@ public class GameManager : SingletonBehaviour<GameManager>
     private System.Collections.IEnumerator InitialTutorialSequence()
     {
         if (helpPanel == null) yield break;
-        
+
         hasSeenTutorial = true;
 
         helpPanel.SetActive(true);

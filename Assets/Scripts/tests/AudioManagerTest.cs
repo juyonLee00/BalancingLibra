@@ -21,7 +21,7 @@ namespace BalancingLibra.Tests
             if (!IsPlaying()) return;
 
             Debug.Log($"[AudioTester] BGM 재생 요청: {bgmName}");
-            AudioManager.Instance.PlayBGM(bgmName, testVolume);
+            AudioManager.Instance.PlayBGM(BGMType.Title);
         }
 
         [ContextMenu("2. Stop BGM")]
@@ -39,7 +39,7 @@ namespace BalancingLibra.Tests
             if (!IsPlaying()) return;
 
             Debug.Log($"[AudioTester] SFX 재생 요청: {sfxName}");
-            AudioManager.Instance.PlaySFX(sfxName, testVolume);
+            AudioManager.Instance.PlaySFX(SFXType.Click);
         }
 
         [ContextMenu("4. Mute ON")]
