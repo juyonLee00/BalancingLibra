@@ -10,8 +10,8 @@ public class LoadingController : MonoBehaviour
 
     private AsyncOperation m_AsyncOperation;
 
-    [SerializeField] private float minLoadingTime = 0.2f;
-    [SerializeField] private float realLoadingLimit = 0.9f;
+    [SerializeField] private float minLoadingTime = 0.5f;
+    [SerializeField] private float realLoadingLimit = 0.3f;
     void Start()
     {
         StartCoroutine(LoadSceneProcess());
@@ -20,7 +20,7 @@ public class LoadingController : MonoBehaviour
 
     private IEnumerator LoadSceneProcess()
     {
-        m_AsyncOperation = SceneLoader.Instance.LoadSceneAsync(SceneType.Lobby);
+        m_AsyncOperation = SceneLoader.Instance.LoadSceneAsync(SceneType.InGame);
         if(m_AsyncOperation == null)
         {
             Logger.Log("Lobby async loading error", this);

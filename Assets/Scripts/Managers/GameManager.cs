@@ -105,16 +105,20 @@ public class GameManager : SingletonBehaviour<GameManager>
             }
         }
 
-        foreach (BallData data in ballList)
+        
+        if (ballList != null && ballList.Count > 0)
         {
-            if(data.prefab != null)
+            foreach (BallData data in ballList)
             {
-                Ball ballScript = data.prefab.GetComponent<Ball>();
-                if(ballScript != null)
+                if(data.prefab != null)
                 {
-                    int poolSize = (ballScript.ballLevel <= 2) ? 30 : 10;
-                    PoolType type = ballScript.myPoolType; 
-                    PoolManager.Instance.CreatePool(type, data.prefab, poolSize);
+                    Ball ballScript = data.prefab.GetComponent<Ball>();
+                    if(ballScript != null)
+                    {
+                        int poolSize = (ballScript.ballLevel <= 2) ? 30 : 10;
+                        PoolType type = ballScript.myPoolType; 
+                        PoolManager.Instance.CreatePool(type, data.prefab, poolSize);
+                    }
                 }
             }
         }
@@ -149,8 +153,7 @@ public class GameManager : SingletonBehaviour<GameManager>
 
     void SpawnBall()
     {
-        if(ballList == null || ballList.Count == 0)
-            return;
+        if(ballList == null || ballList.Count == 0) return;
         
         timeCount = 0f;
         if(mainCamera == null) return;
@@ -177,6 +180,12 @@ public class GameManager : SingletonBehaviour<GameManager>
 
     void SetNextBall()
     {
+        if (ballList == null || ballList.Count == 0)
+        {
+            Logger.LogWarning("[GameManager] BallList is empty.", this);
+            return;
+        }
+
         int maxSpawnIndex = Mathf.Min(ballList.Count, 3);
         _nextBallIndex = Random.Range(0, maxSpawnIndex);
 
@@ -185,6 +194,8 @@ public class GameManager : SingletonBehaviour<GameManager>
 
     void UpdatePreviewObject()
     {
+        if (ballList == null || ballList.Count == 0 || previewPos == null) return;
+
         if(_currentPreviewObject != null)
         {
             _currentPreviewObject.SetActive(false);
@@ -243,13 +254,13 @@ public class GameManager : SingletonBehaviour<GameManager>
     public void GameOver(string reason)
     {
 
-        if (isGameOver)
-        {
-            return;
-        }
+        if (isGameOver) return;
 
         isGameOver = true;
         Logger.Log(reason, this);
+
+        if(nextPanel != null) nextPanel.SetActive(false);
+        if(scorePanel != null) scorePanel.SetActive(false);
 
         if(gameOverPanel != null)
         {
@@ -303,7 +314,7 @@ public class GameManager : SingletonBehaviour<GameManager>
                     
                     // 보상 지급 완료. 
                     hasRewardedForThisBalance = true; 
-                    Logger.Log("Fever +10% 획득. 다음 충전을 위해선 수평을 한 번 깨야 함.", this);
+                    Logger.Log("Get Fever +10%", this);
                 }
             }
         }
@@ -431,11 +442,8 @@ public class GameManager : SingletonBehaviour<GameManager>
             yield return null;
         }
 
-        if (star1 != null) 
-            PoolManager.Instance.ReturnObject((PoolType)(star1.ballLevel), star1.gameObject);
-        
-        if (star2 != null) 
-            PoolManager.Instance.ReturnObject((PoolType)(star2.ballLevel), star2.gameObject);
+        if (star1 != null) PoolManager.Instance.ReturnObject(star1.myPoolType, star1.gameObject);
+        if (star2 != null) PoolManager.Instance.ReturnObject(star2.myPoolType, star2.gameObject);
     }
 
     // 피버타임 코루틴
@@ -496,15 +504,24 @@ public class GameManager : SingletonBehaviour<GameManager>
     //Life UI 스프라이트 교체 
     private void UpdateHeartUI()
     {
+        if (heartUIArray == null || heartUIArray.Length == 0) return;
+
         for (int i = 0; i < heartUIArray.Length; i++)
         {
-            if (i < currentLife)
+            if (heartUIArray[i] != null)
             {
-                heartUIArray[i].enabled = true;
+                if (i < currentLife)
+                {
+                    heartUIArray[i].enabled = true;
+                }
+                else
+                {
+                    heartUIArray[i].enabled = false;
+                }
             }
             else
             {
-                heartUIArray[i].enabled = false;
+                Logger.LogWarning($"[GameManager] {i}th heart UI is not connected to the inspector", this);
             }
         }
     }
@@ -543,6 +560,8 @@ public class GameManager : SingletonBehaviour<GameManager>
 
     private System.Collections.IEnumerator FadeOutHelpPanel()
     {
+        if (helpPanel == null) yield break;
+
         CanvasGroup cg = helpPanel.GetComponent<CanvasGroup>();
         
         if (cg == null) 
@@ -570,6 +589,8 @@ public class GameManager : SingletonBehaviour<GameManager>
     // 처음 시작할 때 조작법 보여주는 코루틴
     private System.Collections.IEnumerator InitialTutorialSequence()
     {
+        if (helpPanel == null) yield break;
+        
         hasSeenTutorial = true;
 
         helpPanel.SetActive(true);
