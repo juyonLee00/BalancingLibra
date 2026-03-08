@@ -75,17 +75,16 @@ namespace JusticeScale.Scripts
             UpdateBalance();
             CheckTiltCondition();
 
-            // 1. 수평 판별 (오차 허용 범위 적용)
+            // 수평 판별 (오차 허용 범위 적용)
             float currentAngle = transform.rotation.eulerAngles.z;
             if (currentAngle > 180f) currentAngle -= 360f;
             bool isBalanced = Mathf.Abs(currentAngle) <= balanceAngleTolerance;
 
-            // 2. [핵심] 빈 저울 판별
-            // 네 코드에 있는 양쪽 무게 변수를 사용해서 둘 다 0이면 비어있는 것으로 간주한다.
-            // (변수명이 leftWeight, rightWeight가 아니라면 네 스크립트에 맞게 수정해라)
+            // 빈 저울 판별
+            // 양쪽 무게 변수를 사용해서 둘 다 0이면 비어있는 것으로 간주
             bool isEmpty = (leftScale.TotalWeight == 0f && rightScale.TotalWeight == 0f); 
 
-            // 3. GameManager로 2개의 상태(수평 여부, 빈 저울 여부)를 동시에 쏜다.
+            // 3. GameManager로 상태(수평 여부, 빈 저울 여부)를 동시 확인
             if (GameManager.Instance != null)
             {
                 GameManager.Instance.UpdateBalanceState(isBalanced, isEmpty);
@@ -128,7 +127,11 @@ namespace JusticeScale.Scripts
                 }
                 if (_currentTiltTimer >= maxTiltDuration)
                 {
-                    warningUI.SetActive(false);
+                    if (warningUI != null) 
+                    {
+                        warningUI.SetActive(false);
+                    }
+
                     GameManager.Instance.GameOver("Scale tilted too far");
                 }
             }
