@@ -18,6 +18,10 @@ public class MergeManager : SingletonBehaviour<MergeManager>
             int nextLevel = firstBall.ballLevel + 1;
             PoolType nextPoolType = firstBall.nextLevelPrefab.GetComponent<Ball>().myPoolType;
 
+            if (AudioManager.Instance != null)
+            {   
+                AudioManager.Instance.PlaySFX(SFXType.BallMerge);
+            }
             Ball newBall = PoolManager.Instance.Spawn<Ball>(nextPoolType, spawnPos, Quaternion.identity);
 
             if (newBall != null)

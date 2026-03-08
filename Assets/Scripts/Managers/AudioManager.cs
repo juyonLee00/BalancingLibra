@@ -1,12 +1,58 @@
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Audio;
+
+public enum BGMType
+{
+    Title,
+    InGame,
+    FeverTime,
+    GameOver
+}
+
+public enum SFXType
+{
+    Click,
+    BallDrop,
+    BallMerge,
+    BlackHole,
+    GameOver,
+    Warning,
+    LifeGone
+}
 
 public class AudioManager : SingletonBehaviour<AudioManager>
 {
+    [Header("Audio Mixer")]
+    public AudioMixerGroup bgmMixerGroup;
+    public AudioMixerGroup sfxMixerGroup;
+
     private Dictionary<string, AudioClip> _audioClips = new Dictionary<string, AudioClip>();
 
     private AudioSource _bgmPlayer;
-    private AudioSource _sfxPlayer;
+
+    private AudioSource _loopSfxPlayer;
+
+    // 다중 효과음 처리를 위한 SFX 리스트
+    private List<AudioSource> _sfxPlayers = new List<AudioSource>();
+    private int maxSfxPlayers = 10; 
+
+    private BGMType _currentBGM;
+    private bool _hasBGM = false;
+
+    // bgm 캐싱 배열 (Enum 순서와 동일해야 함)
+    private readonly string[] _bgmNames = { "Title", "InGame", "FeverTime", "GameOver" };
+
+    // sfx 캐싱 배열 (Enum 순서와 동일해야 함)
+    private readonly string[] _sfxNames = { 
+        "Click", 
+        "BallDrop", 
+        "BallMerge", 
+        "BlackHole", 
+        "GameOver", 
+        "Warning",
+        "LifeGone" 
+    };
 
     protected override void Init()
     {
@@ -18,32 +64,41 @@ public class AudioManager : SingletonBehaviour<AudioManager>
         _bgmPlayer.loop = true; 
         _bgmPlayer.playOnAwake = false;
 
-        GameObject sfxObject = new GameObject("SFX_Player");
-        sfxObject.transform.SetParent(transform);
-        _sfxPlayer = sfxObject.AddComponent<AudioSource>();
-        _sfxPlayer.loop = false;
-        _sfxPlayer.playOnAwake = false;
+        GameObject sfxRoot = new GameObject("SFX_Players");
+        sfxRoot.transform.SetParent(transform);
+        
+        for (int i = 0; i < maxSfxPlayers; i++)
+        {
+            GameObject sfxObj = new GameObject($"SFX_Player_{i}");
+            sfxObj.transform.SetParent(sfxRoot.transform);
+            AudioSource source = sfxObj.AddComponent<AudioSource>();
+            source.loop = false;
+            source.playOnAwake = false;
+            if (sfxMixerGroup != null) source.outputAudioMixerGroup = sfxMixerGroup;
+            
+            _sfxPlayers.Add(source);
+        }
+
+        // 루프 전용 스피커 세팅
+        GameObject loopSfxObj = new GameObject("LoopSFX_Player");
+        loopSfxObj.transform.SetParent(transform);
+        _loopSfxPlayer = loopSfxObj.AddComponent<AudioSource>();
+        _loopSfxPlayer.loop = true;
+        _loopSfxPlayer.playOnAwake = false;
+        if (sfxMixerGroup != null) _loopSfxPlayer.outputAudioMixerGroup = sfxMixerGroup;
 
         Logger.Log("AudioManager : Initialized");
     }
 
     // 배경음악 재생
-    public void PlayBGM(string bgmName, float volume = 1.0f)
+    public void PlayBGM(BGMType bgmType, float volume = 1.0f)
     {
-        if (string.IsNullOrEmpty(bgmName))
+        if (_hasBGM && _currentBGM == bgmType && _bgmPlayer.isPlaying)
         {
-            Logger.Log("AudioManager.PlayBGM: bgmName is null or empty");
             return;
         }
 
-        if (_bgmPlayer == null)
-        {
-            Logger.Log("AudioManager.PlayBGM: _bgmPlayer is not initialized");
-            return;
-        }
-
-        if (_bgmPlayer.clip != null && _bgmPlayer.clip.name == bgmName)
-            return;
+        string bgmName = _bgmNames[(int)bgmType]; 
 
         AudioClip clip = GetOrLoadClip(bgmName, "BGM");
         if (clip != null)
@@ -51,37 +106,29 @@ public class AudioManager : SingletonBehaviour<AudioManager>
             _bgmPlayer.clip = clip;
             _bgmPlayer.volume = volume;
             _bgmPlayer.Play();
-            Logger.Log($"Play BGM : {bgmName}");
-        }
-        else
-        {
-            Logger.Log($"AudioManager.PlayBGM: Failed to load clip '{bgmName}'");
+
+            _currentBGM = bgmType;
+            _hasBGM = true;
         }
     }
 
     // 효과음 재생
-    public void PlaySFX(string sfxName, float volume = 1.0f)
+    public void PlaySFX(SFXType sfxType, float volume = 1.0f, float pitch = 1.0f)
     {
-        if (string.IsNullOrEmpty(sfxName))
-        {
-            Logger.Log("AudioManager.PlaySFX: sfxName is null or empty");
-            return;
-        }
-
-        if (_sfxPlayer == null)
-        {
-            Logger.Log("AudioManager.PlaySFX: _sfxPlayer is not initialized");
-            return;
-        }
-
+        string sfxName = _sfxNames[(int)sfxType]; 
+        
         AudioClip clip = GetOrLoadClip(sfxName, "SFX");
-        if (clip != null)
+        
+        if (clip == null) return;
+
+        AudioSource availableSource = GetAvailableSFXPlayer();
+        
+        if (availableSource != null)
         {
-            _sfxPlayer.PlayOneShot(clip, volume);
-        }
-        else
-        {
-            Logger.Log($"AudioManager.PlaySFX: Failed to load clip '{sfxName}'");
+            // 이번 재생에만 피치 적용
+            availableSource.pitch = pitch;
+            availableSource.volume = volume;
+            availableSource.PlayOneShot(clip);
         }
     }
 
@@ -99,13 +146,50 @@ public class AudioManager : SingletonBehaviour<AudioManager>
     // 음소거 기능
     public void Mute(bool isMute)
     {
-        if (_bgmPlayer == null || _sfxPlayer == null)
+        if (_bgmPlayer != null) 
         {
-            Logger.Log("AudioManager.Mute: AudioSource is not initialized");
-            return;
+            _bgmPlayer.mute = isMute;
         }
-        _bgmPlayer.mute = isMute;
-        _sfxPlayer.mute = isMute;
+
+        foreach (AudioSource source in _sfxPlayers)
+        {
+            if (source != null)
+            {
+                source.mute = isMute;
+            }
+        }
+
+        if (_loopSfxPlayer != null) 
+        {
+            _loopSfxPlayer.mute = isMute;
+        }
+        
+        Logger.Log($"Audio Muted: {isMute}");
+    }
+
+    // 모든 효과음 즉시 정지 
+    public void StopAllSFX()
+    {
+        foreach (AudioSource source in _sfxPlayers)
+        {
+            if (source != null && source.isPlaying)
+            {
+                source.Stop();
+            }
+        }
+        Logger.Log("All SFX Stopped.");
+    }
+
+    // 쉬고 있는 SFX 스피커 이용
+    private AudioSource GetAvailableSFXPlayer()
+    {
+        foreach (var source in _sfxPlayers)
+        {
+            if (!source.isPlaying) return source;
+        }
+        
+        // 모든 플레이어가 바쁘면 가장 오래된(또는 첫 번째) 플레이어 이용
+        return _sfxPlayers[0]; 
     }
 
     // 리소스 로드
@@ -128,6 +212,43 @@ public class AudioManager : SingletonBehaviour<AudioManager>
         _audioClips.Add(name, clip);
         return clip;
     }
+
+    // BGM 배속
+    public void SetBGMPitch(float pitch)
+    {
+        if (_bgmPlayer != null)
+        {
+            _bgmPlayer.pitch = pitch;
+            Logger.Log($"BGM Pitch changed to: {pitch}");
+        }
+    }
+
+    // 무한 루프 효과음 재생
+    public void PlayLoopSFX(SFXType sfxType, float volume = 1.0f)
+    {
+        string sfxName = _sfxNames[(int)sfxType]; 
+        AudioClip clip = GetOrLoadClip(sfxName, "SFX");
+        
+        if (clip == null) return;
+
+        // 중복 재생 방지
+        if (_loopSfxPlayer.isPlaying && _loopSfxPlayer.clip == clip) return;
+
+        _loopSfxPlayer.clip = clip;
+        _loopSfxPlayer.volume = volume;
+        _loopSfxPlayer.Play();
+    }
+
+    // 무한 루프 효과음 정지
+    public void StopLoopSFX()
+    {
+        if (_loopSfxPlayer != null && _loopSfxPlayer.isPlaying)
+        {
+            _loopSfxPlayer.Stop();
+            _loopSfxPlayer.clip = null; 
+        }
+    }
+
     
     // 씬 이동 시 사용하지 않는 소리 메모리 해제 (선택)
     public void ClearCache()

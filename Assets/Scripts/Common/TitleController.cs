@@ -28,6 +28,10 @@ public class TitleController : MonoBehaviour
         {
             _originalTitlePos = titleTextTransform.localPosition;
         }
+        if (AudioManager.Instance != null)
+        {
+            AudioManager.Instance.PlayBGM(BGMType.Title);
+        }
     }
 
     private void Update()
@@ -80,10 +84,14 @@ public class TitleController : MonoBehaviour
     {
         _isTransitioning = true;
         
-        // 클릭음 재생 코드가 있다면 여기에 추가 (예: AudioManager.Instance.Play("StartClick"); )
+        if (AudioManager.Instance != null)
+        {
+            AudioManager.Instance.PlaySFX(SFXType.Click);
+        }
 
         if (SceneLoader.Instance != null)
         {
+            AudioManager.Instance.StopBGM();
             SceneLoader.Instance.LoadScene(SceneType.Loading);
         }
         else

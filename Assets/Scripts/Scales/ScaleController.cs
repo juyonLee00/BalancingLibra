@@ -112,6 +112,9 @@ namespace JusticeScale.Scripts
                     if(!warningUI.activeSelf)
                     {
                         warningUI.SetActive(true);
+
+                        if(AudioManager.Instance != null) 
+                            AudioManager.Instance.PlayLoopSFX(SFXType.Warning);
                     }
 
                     if(_warningImage != null)
@@ -132,6 +135,9 @@ namespace JusticeScale.Scripts
                         warningUI.SetActive(false);
                     }
 
+                    if(AudioManager.Instance != null) 
+                        AudioManager.Instance.StopLoopSFX();
+
                     GameManager.Instance.GameOver("Scale tilted too far");
                 }
             }
@@ -142,6 +148,9 @@ namespace JusticeScale.Scripts
                 if(warningUI != null && warningUI.activeSelf)
                 {
                     warningUI.SetActive(false);
+
+                    if(AudioManager.Instance != null) 
+                        AudioManager.Instance.StopLoopSFX();
                 }
             }
         }
