@@ -1,5 +1,6 @@
 using JusticeScale.Scripts.Scales;
 using UnityEngine;
+using System.Collections;
 
 
 public class Ball : MonoBehaviour
@@ -13,9 +14,17 @@ public class Ball : MonoBehaviour
     public Scale CurrentScale { get; private set; }
     public bool IsMerging { get; private set;}
 
+    private Vector3 _originalScale;
+
     private void Awake()
     {
         Rigidbody  = GetComponent<Rigidbody>();
+        _originalScale = transform.localScale;
+
+        if(Rigidbody != null)
+        {
+            Rigidbody.maxDepenetrationVelocity = 2f;
+        }
     }
 
     private void OnEnable()
@@ -28,11 +37,45 @@ public class Ball : MonoBehaviour
             Rigidbody.linearVelocity = Vector3.zero;
             Rigidbody.angularVelocity = Vector3.zero;
         }
+        
+        // collider 재활성화
+        Collider col = GetComponent<Collider>();
+        if (col != null)
+        {
+            col.enabled = true;
+        }
     }
+
+
 
     public void SetMerging(bool state)
     {
         IsMerging = state;
+    }
+
+    public void StartMergeGrouth()
+    {
+        StartCoroutine(GrowUpRoutine());
+    }
+
+    private IEnumerator GrowUpRoutine()
+    {
+        float duration = 0.15f;
+        float elapsed = 0f;
+
+        // 시작 크기를 0.5배 정도로 아주 작게 시작
+        Vector3 startScale = _originalScale * 0.5f; 
+        transform.localScale = startScale;
+
+        while (elapsed < duration)
+        {
+            elapsed += Time.deltaTime;
+            // 부드러운 팽창 (Lerp)
+            transform.localScale = Vector3.Lerp(startScale, _originalScale, elapsed / duration);
+            yield return null;
+        }
+
+        transform.localScale = _originalScale;
     }
 
     public void SetScale(Scale scale)
