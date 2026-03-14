@@ -10,6 +10,9 @@ public class MergeManager : SingletonBehaviour<MergeManager>
         firstBall.SetMerging(true);
         secondBall.SetMerging(true);
 
+        firstBall.GetComponent<Collider>().enabled = false;
+        secondBall.GetComponent<Collider>().enabled = false;
+
         // 충돌 지점 계산
         Vector3 spawnPos = (firstBall.transform.position + secondBall.transform.position) / 2f;
 
@@ -17,6 +20,9 @@ public class MergeManager : SingletonBehaviour<MergeManager>
         {
             int nextLevel = firstBall.ballLevel + 1;
             PoolType nextPoolType = firstBall.nextLevelPrefab.GetComponent<Ball>().myPoolType;
+
+            PoolManager.Instance.ReturnObject(firstBall.myPoolType, firstBall.gameObject);
+            PoolManager.Instance.ReturnObject(secondBall.myPoolType, secondBall.gameObject);
 
             if (AudioManager.Instance != null)
             {   
@@ -26,6 +32,8 @@ public class MergeManager : SingletonBehaviour<MergeManager>
 
             if (newBall != null)
             {
+                newBall.StartMergeGrouth();
+
                 BallCollisionSensor sensor = newBall.GetComponent<BallCollisionSensor>();
 
                 if(sensor != null && firstBall.CurrentScale != null)
@@ -41,7 +49,11 @@ public class MergeManager : SingletonBehaviour<MergeManager>
                 }
             }
         }
-        PoolManager.Instance.ReturnObject(firstBall.myPoolType, firstBall.gameObject);
-        PoolManager.Instance.ReturnObject(secondBall.myPoolType, secondBall.gameObject);
+        else
+        {
+            PoolManager.Instance.ReturnObject(firstBall.myPoolType, firstBall.gameObject);
+            PoolManager.Instance.ReturnObject(secondBall.myPoolType, secondBall.gameObject);
+        }
+        
     }
 }
